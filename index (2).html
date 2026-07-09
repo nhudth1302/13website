@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Commonplace Book</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ground-top:#241f30;
+    --ground-bot:#13111b;
+    --paper:#f4efe4;
+    --paper-lo:#ece4d3;
+    --ink:#2a2318;
+    --ink-soft:#7a715c;
+    --gold:#c2a24a;
+    --gold-deep:#94781e;
+    --rule:rgba(42,35,24,0.14);
+    --shadow:rgba(9,7,15,0.55);
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+
+  html,body{height:100%}
+  body{
+    font-family:"Space Mono",monospace;
+    background:
+      radial-gradient(120% 90% at 50% -10%, #322a44 0%, var(--ground-top) 42%, var(--ground-bot) 100%);
+    color:var(--paper);
+    min-height:100%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:clamp(28px,6vw,64px) 20px 96px;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---- Masthead ---- */
+  .masthead{text-align:center;margin-bottom:clamp(26px,5vw,44px)}
+  .masthead .mark{
+    font-size:22px;color:var(--gold);letter-spacing:2px;margin-bottom:10px;
+  }
+  .masthead h1{
+    font-family:"Fraunces",serif;
+    font-weight:400;font-style:italic;
+    font-size:clamp(26px,4.6vw,38px);
+    line-height:1.05;
+    color:var(--paper);
+  }
+  .masthead .sub{
+    margin-top:12px;font-size:10.5px;letter-spacing:3.5px;text-transform:uppercase;
+    color:rgba(244,239,228,0.5);
+  }
+
+  /* ---- Card ---- */
+  .card{
+    position:relative;
+    width:min(640px,100%);
+    background:linear-gradient(180deg,var(--paper),var(--paper-lo));
+    color:var(--ink);
+    border-radius:3px;
+    padding:clamp(30px,5.5vw,52px) clamp(26px,5vw,54px) clamp(26px,4.5vw,44px);
+    box-shadow:0 34px 70px -30px var(--shadow), 0 3px 0 0 rgba(0,0,0,0.18);
+    overflow:hidden;
+  }
+  /* thin illuminated inner border */
+  .card::after{
+    content:"";position:absolute;inset:10px;border:1px solid var(--rule);
+    border-radius:2px;pointer-events:none;
+  }
+  /* faint page-light */
+  .card::before{
+    content:"";position:absolute;inset:0;
+    background:radial-gradient(70% 55% at 50% 0%, rgba(255,255,255,0.5), transparent 70%);
+    pointer-events:none;
+  }
+
+  .card-head{
+    position:relative;z-index:1;
+    display:flex;align-items:center;justify-content:space-between;
+    gap:16px;margin-bottom:clamp(22px,4vw,34px);
+  }
+  .classmark{
+    font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--ink-soft);
+    display:flex;align-items:center;gap:9px;
+  }
+  .classmark .glyph{color:var(--gold-deep);font-size:14px}
+
+  /* wax-seal favorite */
+  .seal{
+    appearance:none;border:none;background:none;cursor:pointer;
+    width:38px;height:38px;border-radius:50%;
+    display:grid;place-items:center;
+    border:1px solid var(--rule);
+    color:var(--ink-soft);font-size:15px;
+    transition:transform .18s ease, background .25s ease, color .25s ease, border-color .25s ease;
+  }
+  .seal:hover{transform:scale(1.06)}
+  .seal.on{
+    background:radial-gradient(circle at 38% 32%, #e6c463, var(--gold) 55%, var(--gold-deep));
+    color:#3a2f0a;border-color:var(--gold-deep);
+    box-shadow:inset 0 1px 2px rgba(255,255,255,0.5), 0 2px 6px rgba(148,120,30,0.4);
+  }
+
+  .piece{position:relative;z-index:1;transition:opacity .34s ease, transform .34s ease}
+  .piece.swap{opacity:0;transform:translateY(8px)}
+
+  .piece .text{
+    font-family:"Fraunces",serif;
+    font-weight:400;
+    font-size:clamp(23px,4.4vw,33px);
+    line-height:1.34;
+    letter-spacing:-0.01em;
+    color:var(--ink);
+  }
+  .piece .text::first-letter{}
+  .piece .source{
+    margin-top:22px;font-family:"Fraunces",serif;font-style:italic;
+    font-size:clamp(15px,2.4vw,18px);color:#514835;
+  }
+  .card-foot{
+    position:relative;z-index:1;margin-top:clamp(26px,4.5vw,40px);
+    padding-top:16px;border-top:1px solid var(--rule);
+    display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;
+    font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-soft);
+  }
+
+  /* ---- Controls ---- */
+  .controls{
+    display:flex;gap:12px;flex-wrap:wrap;justify-content:center;
+    margin-top:clamp(24px,4vw,34px);width:min(640px,100%);
+  }
+  .btn{
+    appearance:none;cursor:pointer;
+    font-family:"Space Mono",monospace;font-size:11.5px;letter-spacing:1.5px;
+    text-transform:uppercase;
+    padding:13px 20px;border-radius:2px;
+    border:1px solid rgba(244,239,228,0.24);
+    background:rgba(244,239,228,0.04);color:var(--paper);
+    transition:background .2s ease, border-color .2s ease, transform .12s ease;
+    display:inline-flex;align-items:center;gap:8px;
+  }
+  .btn:hover{background:rgba(244,239,228,0.11);border-color:rgba(244,239,228,0.45)}
+  .btn:active{transform:translateY(1px)}
+  .btn.primary{
+    background:linear-gradient(180deg,#e6c463,var(--gold));color:#37290a;
+    border-color:var(--gold-deep);font-weight:700;
+  }
+  .btn.primary:hover{background:linear-gradient(180deg,#eccd74,#cdaa4e)}
+  .btn .g{font-size:14px}
+
+  :focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+
+  /* ---- Overlay panels ---- */
+  .scrim{
+    position:fixed;inset:0;background:rgba(10,8,16,0.66);
+    backdrop-filter:blur(3px);
+    display:none;align-items:flex-start;justify-content:center;
+    padding:clamp(20px,6vh,70px) 18px;z-index:20;overflow-y:auto;
+  }
+  .scrim.show{display:flex}
+  .panel{
+    width:min(560px,100%);background:linear-gradient(180deg,var(--paper),var(--paper-lo));
+    color:var(--ink);border-radius:3px;padding:clamp(24px,4vw,38px);
+    box-shadow:0 40px 80px -24px var(--shadow);position:relative;
+  }
+  .panel h2{
+    font-family:"Fraunces",serif;font-weight:400;font-style:italic;
+    font-size:26px;margin-bottom:4px;
+  }
+  .panel .lead{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-soft);margin-bottom:22px}
+  .close{
+    position:absolute;top:16px;right:16px;width:34px;height:34px;border-radius:50%;
+    border:1px solid var(--rule);background:none;cursor:pointer;color:var(--ink-soft);
+    font-size:16px;display:grid;place-items:center;transition:background .2s ease;
+  }
+  .close:hover{background:rgba(42,35,24,0.07)}
+
+  /* form */
+  .field{margin-bottom:18px}
+  .field label{display:block;font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-soft);margin-bottom:7px}
+  .field input,.field select,.field textarea{
+    width:100%;font-family:"Space Mono",monospace;font-size:14px;color:var(--ink);
+    background:rgba(255,255,255,0.55);border:1px solid var(--rule);border-radius:2px;
+    padding:11px 13px;resize:vertical;
+  }
+  .field textarea{min-height:96px;font-family:"Fraunces",serif;font-size:17px;line-height:1.4}
+  .seg{display:flex;gap:8px;flex-wrap:wrap}
+  .seg button{
+    flex:1;min-width:72px;cursor:pointer;font-family:"Space Mono",monospace;
+    font-size:10.5px;letter-spacing:1px;text-transform:uppercase;padding:10px 8px;
+    border:1px solid var(--rule);background:rgba(255,255,255,0.4);color:var(--ink-soft);border-radius:2px;
+    transition:all .18s ease;
+  }
+  .seg button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+
+  /* favorites list */
+  .fav-list{display:flex;flex-direction:column;gap:0}
+  .fav-item{
+    padding:16px 0;border-top:1px solid var(--rule);cursor:pointer;
+    display:flex;justify-content:space-between;gap:14px;align-items:flex-start;
+  }
+  .fav-item:first-child{border-top:none}
+  .fav-item .ft{font-family:"Fraunces",serif;font-size:16px;line-height:1.35;color:var(--ink)}
+  .fav-item .fm{font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft);margin-top:6px}
+  .fav-item .rm{
+    flex:none;border:none;background:none;cursor:pointer;color:var(--ink-soft);
+    font-size:12px;letter-spacing:1px;text-transform:uppercase;padding:2px 4px;
+  }
+  .fav-item .rm:hover{color:var(--gold-deep)}
+  .empty{padding:30px 0;text-align:center;color:var(--ink-soft);font-family:"Fraunces",serif;font-style:italic;font-size:17px}
+
+  .loading{color:rgba(244,239,228,0.55);font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-top:40px}
+
+  /* ---- Sound bar ---- */
+  .soundbar{
+    display:flex;gap:10px;justify-content:center;flex-wrap:wrap;
+    margin-top:14px;width:min(640px,100%);
+  }
+  .chip{
+    appearance:none;cursor:pointer;
+    font-family:"Space Mono",monospace;font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;
+    padding:9px 15px;border-radius:999px;
+    border:1px solid rgba(244,239,228,0.18);background:rgba(244,239,228,0.03);
+    color:rgba(244,239,228,0.66);
+    display:inline-flex;align-items:center;gap:7px;
+    transition:background .2s ease,border-color .2s ease,color .2s ease;
+  }
+  .chip:hover{color:var(--paper);border-color:rgba(244,239,228,0.4)}
+  .chip .dot{width:6px;height:6px;border-radius:50%;background:rgba(244,239,228,0.3);transition:background .2s ease,box-shadow .2s ease}
+  .chip.on{color:var(--gold);border-color:var(--gold-deep);background:rgba(194,162,74,0.08)}
+  .chip.on .dot{background:var(--gold);box-shadow:0 0 8px var(--gold)}
+  .chip.on.pulse .dot{animation:pulse 1.6s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.35}}
+  .chip[disabled]{opacity:0.35;cursor:not-allowed}
+
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none!important;animation:none!important}
+  }
+</style>
+</head>
+<body>
+  <header class="masthead">
+    <div class="mark">❧</div>
+    <h1>The Commonplace Book</h1>
+    <div class="sub" id="today-label">a page a day</div>
+  </header>
+
+  <main id="stage" style="width:min(640px,100%);">
+    <div class="loading" id="loading">opening the book…</div>
+  </main>
+
+  <!-- ADD ENTRY PANEL -->
+  <div class="scrim" id="add-scrim">
+    <div class="panel" role="dialog" aria-modal="true" aria-labelledby="add-title">
+      <button class="close" data-close="add-scrim" aria-label="Close">✕</button>
+      <h2 id="add-title">Add to the book</h2>
+      <div class="lead">a memory, a goal, an idea, a line worth keeping</div>
+
+      <div class="field">
+        <label>What kind of entry?</label>
+        <div class="seg" id="cat-seg">
+          <button data-cat="quote" class="on">Quote</button>
+          <button data-cat="memory">Memory</button>
+          <button data-cat="goal">Goal</button>
+          <button data-cat="idea">Idea</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>The entry</label>
+        <textarea id="in-text" placeholder="Write the thing you want to return to…"></textarea>
+      </div>
+      <div class="field">
+        <label>Source <span style="text-transform:none;letter-spacing:0">(who said it, or where it's from — optional)</span></label>
+        <input id="in-source" type="text" placeholder="e.g. a friend, a book, yourself, 2019">
+      </div>
+      <div class="controls" style="margin-top:8px;justify-content:flex-end">
+        <button class="btn" data-close="add-scrim">Cancel</button>
+        <button class="btn primary" id="save-entry">File it</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAVORITES PANEL -->
+  <div class="scrim" id="fav-scrim">
+    <div class="panel" role="dialog" aria-modal="true" aria-labelledby="fav-title">
+      <button class="close" data-close="fav-scrim" aria-label="Close">✕</button>
+      <h2 id="fav-title">Kept pages</h2>
+      <div class="lead" id="fav-count">the ones you sealed</div>
+      <div class="fav-list" id="fav-list"></div>
+    </div>
+  </div>
+
+<script>
+/* ---------- The archive: curated starter entries ---------- */
+const SEED = [
+  ["quote","The unexamined life is not worth living.","Socrates"],
+  ["quote","We suffer more in imagination than in reality.","Seneca"],
+  ["quote","Very little is needed to make a happy life.","Marcus Aurelius"],
+  ["quote","Waste no more time arguing what a good person should be. Be one.","Marcus Aurelius"],
+  ["quote","It is not length of life, but depth of life.","Ralph Waldo Emerson"],
+  ["quote","The best way out is always through.","Robert Frost"],
+  ["quote","Fall seven times, stand up eight.","Japanese proverb"],
+  ["quote","He who has a why to live can bear almost any how.","Friedrich Nietzsche"],
+  ["quote","Do what you can, with what you have, where you are.","Theodore Roosevelt"],
+  ["quote","Well done is better than well said.","Benjamin Franklin"],
+  ["quote","Knowing yourself is the beginning of all wisdom.","Aristotle"],
+  ["quote","Nature does not hurry, yet everything is accomplished.","Lao Tzu"],
+  ["quote","The journey of a thousand miles begins with a single step.","Lao Tzu"],
+  ["quote","That which does not kill us makes us stronger.","Friedrich Nietzsche"],
+  ["quote","Act as if what you do makes a difference. It does.","William James"],
+  ["quote","Whether you think you can or think you can't, you're right.","Henry Ford"],
+  ["quote","Life is really simple, but we insist on making it complicated.","Confucius"],
+  ["quote","Our life is what our thoughts make it.","Marcus Aurelius"],
+  ["quote","The secret of getting ahead is getting started.","Mark Twain"],
+  ["quote","Courage is grace under pressure.","Ernest Hemingway"],
+  ["quote","Simplicity is the ultimate sophistication.","Leonardo da Vinci"],
+  ["quote","What you do speaks so loudly I cannot hear what you say.","Ralph Waldo Emerson"],
+  ["quote","To be yourself in a world that tries to make you otherwise is a great accomplishment.","Ralph Waldo Emerson"],
+  ["quote","No one can make you feel inferior without your consent.","Eleanor Roosevelt"]
+].map((r,i)=>({id:"q"+i,cat:r[0],text:r[1],source:r[2],added:null}));
+
+const GLYPH = {quote:"❝", memory:"❧", goal:"✦", idea:"✧"};
+const LABEL = {quote:"Quote", memory:"Memory", goal:"Goal", idea:"Idea"};
+
+let CUSTOM = [];
+let FAVS = new Set();
+let pool = [];
+let current = null;
+let lastId = null;
+
+/* ---------- Storage (localStorage — works on any web host) ---------- */
+async function loadState(){
+  try{ const v = localStorage.getItem("cb_customEntries"); if(v) CUSTOM = JSON.parse(v); }
+  catch(e){ CUSTOM = []; }
+  try{ const v = localStorage.getItem("cb_favorites"); if(v) FAVS = new Set(JSON.parse(v)); }
+  catch(e){ FAVS = new Set(); }
+}
+async function saveCustom(){
+  try{ localStorage.setItem("cb_customEntries", JSON.stringify(CUSTOM)); }catch(e){}
+}
+async function saveFavs(){
+  try{ localStorage.setItem("cb_favorites", JSON.stringify([...FAVS])); }catch(e){}
+}
+
+/* ---------- Helpers ---------- */
+function rebuildPool(){ pool = [...SEED, ...CUSTOM]; }
+function catNo(entry){
+  const n = pool.findIndex(e=>e.id===entry.id);
+  return String((n<0?0:n)+1).padStart(3,"0");
+}
+function fmtDate(ts){
+  const d = ts ? new Date(ts) : new Date();
+  return d.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric",year:"numeric"});
+}
+function daySeed(){
+  const d = new Date();
+  return Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5);
+}
+
+/* ---------- Rendering ---------- */
+function stageMarkup(){
+  return `
+  <section class="card">
+    <div class="card-head">
+      <div class="classmark"><span class="glyph" id="c-glyph"></span><span id="c-class"></span> · no. <span id="c-no"></span></div>
+      <button class="seal" id="c-seal" aria-label="Keep this page" title="Keep this page">★</button>
+    </div>
+    <div class="piece" id="c-piece">
+      <div class="text" id="c-text"></div>
+      <div class="source" id="c-source"></div>
+    </div>
+    <div class="card-foot">
+      <span id="c-filed"></span>
+      <span id="c-origin"></span>
+    </div>
+  </section>
+  <div class="controls">
+    <button class="btn primary" id="btn-draw"><span class="g">⟳</span> Draw another</button>
+    <button class="btn" id="btn-fav"><span class="g">★</span> Kept pages</button>
+    <button class="btn" id="btn-add"><span class="g">+</span> Add entry</button>
+  </div>
+  <div class="soundbar">
+    <button class="chip" id="chip-voice"><span class="dot"></span> Read aloud</button>
+    <button class="chip" id="chip-music"><span class="dot"></span> Ambient music</button>
+  </div>`;
+}
+
+function paint(entry, isToday){
+  current = entry; lastId = entry.id;
+  document.getElementById("c-glyph").textContent = GLYPH[entry.cat] || "❝";
+  document.getElementById("c-class").textContent = LABEL[entry.cat] || "Entry";
+  document.getElementById("c-no").textContent = catNo(entry);
+  document.getElementById("c-text").textContent = (entry.cat==="quote") ? "“"+entry.text+"”" : entry.text;
+  document.getElementById("c-source").textContent = entry.source ? "— "+entry.source : "";
+  document.getElementById("c-filed").textContent = "Filed " + fmtDate(entry.added);
+  document.getElementById("c-origin").textContent = isToday ? "Today's draw" : (entry.added ? "Your entry" : "From the archive");
+  updateSeal();
+}
+function updateSeal(){
+  const s = document.getElementById("c-seal");
+  if(!s) return;
+  const on = FAVS.has(current.id);
+  s.classList.toggle("on", on);
+  s.setAttribute("aria-pressed", on);
+}
+function swapTo(entry, isToday){
+  const p = document.getElementById("c-piece");
+  p.classList.add("swap");
+  setTimeout(()=>{ paint(entry, isToday); p.classList.remove("swap"); afterCardChange(); }, 300);
+}
+
+function drawAnother(){
+  if(pool.length<=1) return;
+  let pick;
+  do{ pick = pool[Math.floor(Math.random()*pool.length)]; }while(pick.id===lastId);
+  swapTo(pick, false);
+}
+
+/* ---------- Favorites panel ---------- */
+function openFavs(){
+  const list = document.getElementById("fav-list");
+  const kept = pool.filter(e=>FAVS.has(e.id));
+  document.getElementById("fav-count").textContent = kept.length ? kept.length+" kept "+(kept.length===1?"page":"pages") : "the ones you seal";
+  if(!kept.length){
+    list.innerHTML = `<div class="empty">Nothing kept yet.<br>Seal a page with the ★ and it lands here.</div>`;
+  } else {
+    list.innerHTML = kept.map(e=>`
+      <div class="fav-item" data-id="${e.id}">
+        <div>
+          <div class="ft">${e.cat==="quote"?"“"+esc(e.text)+"”":esc(e.text)}</div>
+          <div class="fm">${LABEL[e.cat]}${e.source?" · "+esc(e.source):""}</div>
+        </div>
+        <button class="rm" data-rm="${e.id}">unseal</button>
+      </div>`).join("");
+  }
+  show("fav-scrim");
+}
+function esc(s){return s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+
+/* ---------- Add entry ---------- */
+let newCat = "quote";
+async function saveEntry(){
+  const text = document.getElementById("in-text").value.trim();
+  const source = document.getElementById("in-source").value.trim();
+  if(!text){ document.getElementById("in-text").focus(); return; }
+  const entry = {id:"c_"+Date.now(), cat:newCat, text, source, added:Date.now()};
+  CUSTOM.push(entry);
+  await saveCustom();
+  rebuildPool();
+  document.getElementById("in-text").value="";
+  document.getElementById("in-source").value="";
+  hide("add-scrim");
+  swapTo(entry, false);
+}
+
+/* ---------- Overlay utils ---------- */
+function show(id){document.getElementById(id).classList.add("show");}
+function hide(id){document.getElementById(id).classList.remove("show");}
+
+/* ---------- Audio: voice + ambient music ---------- */
+const Sound = {
+  voiceOn:false, musicOn:false, voice:null,
+  ctx:null, master:null, drone:[], timer:null,
+  scale:[220,261.63,293.66,329.63,392,440,523.25], // A-minor pentatonic-ish, calming
+
+  pickVoice(){
+    const all = speechSynthesis.getVoices();
+    if(!all.length) return;
+    const prefer = ["samantha","victoria","karen","moira","tessa","fiona","serena","zira","female","google uk english female","google us english"];
+    let v = null;
+    for(const name of prefer){ v = all.find(x=>x.name.toLowerCase().includes(name) && x.lang.startsWith("en")); if(v) break; }
+    if(!v) v = all.find(x=>x.lang.startsWith("en")) || all[0];
+    this.voice = v;
+  },
+
+  speakCurrent(){
+    if(!("speechSynthesis" in window) || !current) return;
+    speechSynthesis.cancel();
+    const line = (current.cat==="quote" ? current.text : current.text) + (current.source ? ". By " + current.source : "");
+    const u = new SpeechSynthesisUtterance(line);
+    if(this.voice) u.voice = this.voice;
+    u.rate = 0.86; u.pitch = 1.02; u.volume = 1;     // soft, unhurried
+    u.onstart = ()=>this.duck(true);
+    u.onend = ()=>this.duck(false);
+    u.onerror = ()=>this.duck(false);
+    speechSynthesis.speak(u);
+  },
+
+  ensureCtx(){
+    if(this.ctx) return;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    this.ctx = new AC();
+    this.master = this.ctx.createGain();
+    this.master.gain.value = 0.0;
+    this.master.connect(this.ctx.destination);
+  },
+
+  duck(on){ // lower music while the voice speaks
+    if(!this.master || !this.musicOn) return;
+    const t = this.ctx.currentTime;
+    this.master.gain.cancelScheduledValues(t);
+    this.master.gain.linearRampToValueAtTime(on ? 0.05 : 0.16, t + 0.4);
+  },
+
+  startMusic(){
+    this.ensureCtx();
+    if(this.ctx.state==="suspended") this.ctx.resume();
+    this.musicOn = true;
+    this.master.gain.cancelScheduledValues(this.ctx.currentTime);
+    this.master.gain.linearRampToValueAtTime(0.16, this.ctx.currentTime + 1.5);
+
+    // warm low drone (root + fifth) through a gentle lowpass
+    const filt = this.ctx.createBiquadFilter();
+    filt.type = "lowpass"; filt.frequency.value = 900; filt.Q.value = 0.6;
+    filt.connect(this.master);
+    [110, 164.81].forEach((f,i)=>{
+      const o = this.ctx.createOscillator();
+      const g = this.ctx.createGain();
+      o.type = "sine"; o.frequency.value = f;
+      o.detune.value = i ? 4 : -4;
+      g.gain.value = 0.12;
+      o.connect(g); g.connect(filt); o.start();
+      this.drone.push(o);
+    });
+    // a slow filter sweep for movement
+    const lfo = this.ctx.createOscillator();
+    const lfoGain = this.ctx.createGain();
+    lfo.frequency.value = 0.05; lfoGain.gain.value = 350;
+    lfo.connect(lfoGain); lfoGain.connect(filt.frequency); lfo.start();
+    this.drone.push(lfo);
+    this.filt = filt;
+
+    // occasional soft bell notes
+    const playBell = ()=>{
+      if(!this.musicOn) return;
+      const f = this.scale[Math.floor(Math.random()*this.scale.length)];
+      const o = this.ctx.createOscillator();
+      const g = this.ctx.createGain();
+      o.type = "triangle"; o.frequency.value = f;
+      const now = this.ctx.currentTime;
+      g.gain.setValueAtTime(0, now);
+      g.gain.linearRampToValueAtTime(0.08, now + 0.7);   // soft attack
+      g.gain.exponentialRampToValueAtTime(0.0001, now + 4); // long fade
+      o.connect(g); g.connect(this.filt);
+      o.start(now); o.stop(now + 4.2);
+      this.timer = setTimeout(playBell, 2600 + Math.random()*3200);
+    };
+    this.timer = setTimeout(playBell, 1200);
+  },
+
+  stopMusic(){
+    this.musicOn = false;
+    if(this.timer) clearTimeout(this.timer);
+    if(this.master){
+      const t = this.ctx.currentTime;
+      this.master.gain.cancelScheduledValues(t);
+      this.master.gain.linearRampToValueAtTime(0, t + 0.8);
+    }
+    setTimeout(()=>{ this.drone.forEach(o=>{try{o.stop()}catch(e){}}); this.drone=[]; }, 900);
+  }
+};
+
+/* ---------- Overlay utils (audio-aware paint hook) ---------- */
+function afterCardChange(){
+  if(Sound.voiceOn) setTimeout(()=>Sound.speakCurrent(), 120);
+}
+
+
+/* ---------- Wire up ---------- */
+function bind(){
+  document.getElementById("btn-draw").onclick = drawAnother;
+  document.getElementById("btn-fav").onclick = openFavs;
+  document.getElementById("btn-add").onclick = ()=>show("add-scrim");
+  document.getElementById("c-seal").onclick = async ()=>{
+    if(FAVS.has(current.id)) FAVS.delete(current.id); else FAVS.add(current.id);
+    updateSeal(); await saveFavs();
+  };
+
+  document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>hide(b.dataset.close));
+  document.querySelectorAll(".scrim").forEach(s=>s.addEventListener("click",e=>{if(e.target===s)hide(s.id);}));
+  document.addEventListener("keydown",e=>{if(e.key==="Escape")document.querySelectorAll(".scrim.show").forEach(s=>hide(s.id));});
+
+  document.getElementById("cat-seg").addEventListener("click",e=>{
+    const b = e.target.closest("button"); if(!b) return;
+    document.querySelectorAll("#cat-seg button").forEach(x=>x.classList.remove("on"));
+    b.classList.add("on"); newCat = b.dataset.cat;
+  });
+  document.getElementById("save-entry").onclick = saveEntry;
+
+  // sound controls
+  const chipVoice = document.getElementById("chip-voice");
+  const chipMusic = document.getElementById("chip-music");
+
+  if(!("speechSynthesis" in window)){
+    chipVoice.disabled = true; chipVoice.title = "Your browser can't read text aloud";
+  } else {
+    Sound.pickVoice();
+    speechSynthesis.onvoiceschanged = ()=>Sound.pickVoice();
+    chipVoice.onclick = ()=>{
+      Sound.voiceOn = !Sound.voiceOn;
+      chipVoice.classList.toggle("on", Sound.voiceOn);
+      if(Sound.voiceOn) Sound.speakCurrent();      // read now, and on every future card
+      else speechSynthesis.cancel();
+    };
+  }
+
+  if(!(window.AudioContext || window.webkitAudioContext)){
+    chipMusic.disabled = true; chipMusic.title = "Your browser can't play generated audio";
+  } else {
+    chipMusic.onclick = ()=>{
+      if(Sound.musicOn){ Sound.stopMusic(); chipMusic.classList.remove("on","pulse"); }
+      else { Sound.startMusic(); chipMusic.classList.add("on","pulse"); }
+    };
+  }
+
+  document.getElementById("fav-list").addEventListener("click", async e=>{
+    const rm = e.target.closest("[data-rm]");
+    if(rm){ FAVS.delete(rm.dataset.rm); await saveFavs(); openFavs(); return; }
+    const item = e.target.closest("[data-id]");
+    if(item){ const entry = pool.find(x=>x.id===item.dataset.id); if(entry){ hide("fav-scrim"); swapTo(entry,false);} }
+  });
+}
+
+/* ---------- Boot ---------- */
+async function init(){
+  await loadState();
+  rebuildPool();
+  document.getElementById("stage").innerHTML = stageMarkup();
+  bind();
+  const todays = pool[daySeed() % pool.length];
+  paint(todays, true);
+  document.getElementById("today-label").textContent = fmtDate(null);
+}
+init();
+</script>
+</body>
+</html>
