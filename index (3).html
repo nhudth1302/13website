@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Motivation — Inspirational Quotes</title>
+<style>
+  :root{
+    --gold:#d4a574;--gold-dark:#8b7355;--dark-bg:#0f1419;--dark-surface:#1a1f2e;
+    --light-text:#f5f3f0;--text-muted:#a89e95;--accent:#e8b4a8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;width:100%}
+  body{
+    font-family:"Segoe UI",sans-serif;background:linear-gradient(135deg,#0a0e14 0%,#16212b 50%,#0f1419 100%);
+    color:var(--light-text);min-height:100vh;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;padding:20px;overflow-x:hidden;
+  }
+
+  .container{max-width:700px;width:100%;animation:fadeIn 0.8s ease-in}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+  .header{text-align:center;margin-bottom:40px}
+  .header h1{
+    font-size:clamp(28px,6vw,42px);font-weight:300;letter-spacing:2px;margin-bottom:8px;
+    background:linear-gradient(135deg,#d4a574,#e8b4a8);-webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;background-clip:text;
+  }
+  .header p{font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted)}
+
+  .card{
+    background:linear-gradient(135deg,rgba(212,165,116,0.06),rgba(232,180,168,0.04));
+    border:1px solid rgba(212,165,116,0.2);border-radius:12px;padding:clamp(30px,5vw,50px);
+    margin-bottom:30px;position:relative;overflow:hidden;backdrop-filter:blur(10px);
+    box-shadow:0 8px 32px rgba(0,0,0,0.3);
+  }
+  .card::before{content:"";position:absolute;top:-50%;right:-50%;width:300px;height:300px;
+    border-radius:50%;background:radial-gradient(circle,rgba(232,180,168,0.05),transparent);pointer-events:none}
+
+  .quote-text{
+    font-size:clamp(20px,4.5vw,28px);line-height:1.6;font-weight:300;letter-spacing:0.3px;
+    color:var(--light-text);margin-bottom:20px;position:relative;z-index:1;font-style:italic;
+  }
+  .quote-author{
+    font-size:14px;color:var(--accent);font-weight:500;letter-spacing:0.5px;
+    margin-top:16px;padding-top:12px;border-top:1px solid rgba(212,165,116,0.3);
+  }
+
+  .meta{
+    display:flex;justify-content:space-between;align-items:center;font-size:11px;
+    color:var(--text-muted);margin-top:14px;letter-spacing:0.5px;
+  }
+
+  .controls{
+    display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:20px;
+  }
+  .btn{
+    appearance:none;cursor:pointer;padding:12px 20px;border-radius:6px;
+    border:1px solid rgba(212,165,116,0.4);background:rgba(212,165,116,0.1);
+    color:var(--light-text);font-size:12px;letter-spacing:1px;text-transform:uppercase;
+    transition:all 0.3s ease;font-weight:500;
+  }
+  .btn:hover{background:rgba(212,165,116,0.2);border-color:var(--gold);transform:translateY(-2px)}
+  .btn:active{transform:translateY(0)}
+  .btn.primary{background:linear-gradient(135deg,#d4a574,#e8b4a8);border:none;color:#0f1419}
+  .btn.primary:hover{opacity:0.9}
+  .btn.favorite{color:var(--accent)}
+  .btn.favorite.on{background:rgba(232,180,168,0.2);border-color:var(--accent)}
+  .btn[disabled]{opacity:0.4;cursor:not-allowed}
+
+  .soundbar{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:30px}
+  .chip{
+    appearance:none;cursor:pointer;padding:9px 16px;border-radius:20px;
+    border:1px solid rgba(212,165,116,0.3);background:rgba(212,165,116,0.05);
+    color:var(--light-text);font-size:11px;letter-spacing:1px;text-transform:uppercase;
+    transition:all 0.3s ease;display:flex;align-items:center;gap:8px;font-weight:500;
+  }
+  .chip:hover{background:rgba(212,165,116,0.15);border-color:var(--gold)}
+  .chip.on{background:rgba(212,165,116,0.25);border-color:var(--gold);color:var(--gold)}
+  .chip .dot{width:6px;height:6px;border-radius:50%;background:rgba(212,165,116,0.5);
+    transition:all 0.3s ease}
+  .chip.on .dot{background:var(--gold);box-shadow:0 0 8px var(--gold);animation:pulse 1.5s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+  .chip[disabled]{opacity:0.35;cursor:not-allowed}
+
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:none;
+    align-items:center;justify-content:center;z-index:100;padding:20px;backdrop-filter:blur(4px)}
+  .modal.show{display:flex}
+  .modal-content{
+    background:linear-gradient(135deg,#1a1f2e 0%,#242a38 100%);border:1px solid rgba(212,165,116,0.2);
+    border-radius:12px;padding:40px;max-width:500px;width:100%;max-height:80vh;overflow-y:auto;
+  }
+  .modal-close{
+    position:absolute;top:16px;right:16px;background:none;border:none;color:var(--text-muted);
+    font-size:24px;cursor:pointer;transition:color 0.3s;z-index:10}
+  .modal-close:hover{color:var(--light-text)}
+  .modal h2{font-size:24px;margin-bottom:8px;color:var(--gold)}
+  .modal .lead{font-size:12px;color:var(--text-muted);letter-spacing:1.5px;
+    text-transform:uppercase;margin-bottom:20px}
+
+  .fav-list{display:flex;flex-direction:column;gap:0}
+  .fav-item{
+    padding:14px 0;border-top:1px solid rgba(212,165,116,0.15);cursor:pointer;
+    transition:all 0.2s;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;
+  }
+  .fav-item:hover{background:rgba(212,165,116,0.08);padding-left:8px}
+  .fav-item .text{font-size:14px;line-height:1.5;color:var(--light-text);font-style:italic}
+  .fav-item .author{font-size:11px;color:var(--accent);margin-top:6px;letter-spacing:0.5px}
+  .fav-item .remove{background:none;border:none;color:var(--text-muted);cursor:pointer;
+    font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:2px 4px;transition:color 0.2s}
+  .fav-item .remove:hover{color:var(--accent)}
+  .empty{text-align:center;padding:30px 0;color:var(--text-muted);font-style:italic}
+
+  .form-group{margin-bottom:18px}
+  .form-group label{display:block;font-size:11px;letter-spacing:1.5px;
+    text-transform:uppercase;color:var(--text-muted);margin-bottom:8px}
+  .form-group input,.form-group textarea,.form-group select{
+    width:100%;padding:10px 12px;background:rgba(255,255,255,0.08);border:1px solid rgba(212,165,116,0.2);
+    border-radius:6px;color:var(--light-text);font-family:inherit;font-size:14px;
+    transition:all 0.2s}
+  .form-group input:focus,.form-group textarea:focus,.form-group select:focus{
+    outline:none;border-color:var(--gold);background:rgba(255,255,255,0.12)}
+  .form-group textarea{min-height:100px;resize:vertical}
+
+  .category-select{display:flex;gap:8px;flex-wrap:wrap}
+  .cat-btn{
+    flex:1;min-width:70px;padding:8px 12px;border:1px solid rgba(212,165,116,0.2);
+    background:rgba(212,165,116,0.05);color:var(--light-text);border-radius:6px;cursor:pointer;
+    font-size:11px;letter-spacing:0.5px;text-transform:uppercase;transition:all 0.2s}
+  .cat-btn.active{background:rgba(212,165,116,0.2);border-color:var(--gold)}
+
+  .loading{text-align:center;padding:40px 20px;color:var(--text-muted);
+    font-size:13px;letter-spacing:2px;text-transform:uppercase}
+
+  @media (max-width:600px){
+    .header h1{font-size:28px}
+    .quote-text{font-size:18px;line-height:1.5}
+    .card{padding:24px}
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>Daily Motivation</h1>
+    <p>Find your spark · Every quote is a seed</p>
+  </div>
+
+  <div class="soundbar">
+    <button class="chip" id="chip-voice"><span class="dot"></span>Read aloud</button>
+    <button class="chip" id="chip-music"><span class="dot"></span>Ambient music</button>
+  </div>
+
+  <div class="controls">
+    <button class="btn primary" id="btn-next">✦ Next quote</button>
+    <button class="btn favorite" id="btn-favorite">★ Favorite</button>
+    <button class="btn" id="btn-saved">❤ Saved</button>
+    <button class="btn" id="btn-add">+ Add</button>
+  </div>
+
+  <div class="card" id="card">
+    <div class="quote-text" id="quote-text"></div>
+    <div class="quote-author" id="quote-author"></div>
+    <div class="meta">
+      <span id="quote-date"></span>
+      <span id="quote-source"></span>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="fav-modal">
+  <div class="modal-content" style="position:relative">
+    <button class="modal-close" onclick="closeModal('fav-modal')">✕</button>
+    <h2>Saved quotes</h2>
+    <div class="lead">Your collection</div>
+    <div class="fav-list" id="fav-list"></div>
+  </div>
+</div>
+
+<div class="modal" id="add-modal">
+  <div class="modal-content" style="position:relative">
+    <button class="modal-close" onclick="closeModal('add-modal')">✕</button>
+    <h2>Add your quote</h2>
+    <div class="lead">Share your inspiration</div>
+    <div class="form-group">
+      <label>Category</label>
+      <div class="category-select">
+        <button class="cat-btn active" data-cat="motivation">Motivation</button>
+        <button class="cat-btn" data-cat="wisdom">Wisdom</button>
+        <button class="cat-btn" data-cat="success">Success</button>
+        <button class="cat-btn" data-cat="life">Life</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Quote</label>
+      <textarea id="new-quote" placeholder="Write something meaningful…"></textarea>
+    </div>
+    <div class="form-group">
+      <label>Author (optional)</label>
+      <input type="text" id="new-author" placeholder="Your name or source">
+    </div>
+    <div style="display:flex;gap:10px;margin-top:20px">
+      <button class="btn" onclick="closeModal('add-modal')">Cancel</button>
+      <button class="btn primary" id="btn-save">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const QUOTES=[
+  ["Believe you can and you're halfway there.","Theodore Roosevelt","motivation"],
+  ["The only impossible journey is the one you never begin.","Tony Robbins","motivation"],
+  ["You are capable of amazing things.","Steve Jobs","motivation"],
+  ["Success is not final, failure is not fatal.","Winston Churchill","success"],
+  ["Dream big and dare to fail.","Norman Vaughan","motivation"],
+  ["The future belongs to those who believe in the beauty of their dreams.","Eleanor Roosevelt","motivation"],
+  ["It is during our darkest moments that we must focus to see the light.","Aristotle","wisdom"],
+  ["Do what you can, with what you have, where you are.","Theodore Roosevelt","success"],
+  ["Everything you want is on the other side of fear.","Jack Canfield","motivation"],
+  ["Believe in yourself. You are braver than you think.","A.A. Milne","motivation"],
+  ["Your limitation—it's only your imagination.","Unknown","motivation"],
+  ["Great things never come from comfort zones.","Unknown","success"],
+  ["Dream it. Believe it. Build it.","Thomas Keller","success"],
+  ["Strive for progress, not perfection.","Unknown","wisdom"],
+  ["It's not whether you get knocked down, it's whether you get up.","Vince Lombardi","motivation"],
+  ["If you believe it, you can achieve it.","Unknown","motivation"],
+  ["Don't watch the clock; do what it does. Keep going.","Sam Levenson","success"],
+  ["The best time to plant a tree was 20 years ago. The second best time is now.","Chinese Proverb","wisdom"],
+  ["Your effort will always pay off.","Unknown","success"],
+  ["Work hard in silence and let success make the noise.","Unknown","success"],
+  ["The only way to do great work is to love what you do.","Steve Jobs","success"],
+  ["Discipline is choosing between what you want now and what you want most.","Abraham Lincoln","wisdom"],
+  ["Nothing is impossible. The word itself says I'm possible.","Audrey Hepburn","motivation"],
+  ["Do what makes you happy and be with who makes you smile.","Unknown","life"],
+  ["A positive attitude can really make dreams come true.","David Bailey","motivation"],
+  ["Motivation is what gets you started. Habit is what keeps you going.","Jim Ryun","success"],
+  ["Life is either a daring adventure or nothing at all.","Helen Keller","life"],
+  ["You've already overcome so much. You will overcome this too.","Unknown","motivation"],
+  ["The struggle you're in today is developing the strength you need tomorrow.","Robert Tew","motivation"],
+  ["Excellence is not a skill, it's an attitude.","Ralph Marston","success"],
+  ["Fear is just a four-letter word and I will not let it control me.","Unknown","motivation"],
+  ["Your potential is endless. Your possibilities are infinite.","Unknown","motivation"],
+  ["You are not a drop in the ocean. You are the entire ocean in a drop.","Rumi","wisdom"],
+  ["Wake up with determination. Go to bed with satisfaction.","Unknown","success"],
+  ["Challenges are what make life interesting.","Joshua J. Marine","life"],
+  ["Do not wait for the perfect moment, take the moment and make it perfect.","Zig Ziglar","motivation"],
+  ["The only thing standing between you and your goal is the story you keep telling yourself.","Jordan Belfort","motivation"],
+  ["I cannot change yesterday, but I can change today.","Unknown","life"],
+  ["Your past doesn't define your future.","Unknown","motivation"],
+  ["The question isn't who is going to let me; it's who is going to stop me.","Ayn Rand","success"],
+  ["Small progress is still progress.","Unknown","motivation"],
+  ["You don't have to be great to start, but you have to start to be great.","Zig Ziglar","success"],
+  ["Act as if what you do makes a difference. It does.","William James","life"],
+  ["Life is 10% what happens to you and 90% how you react to it.","Charles R. Swindoll","life"],
+  ["The best revenge is massive personal success.","Frank Sinatra","success"],
+  ["I will not compromise my vision for anyone.","Unknown","success"],
+  ["You are a work in progress.","Unknown","wisdom"],
+  ["Hardship often prepares an ordinary person for an extraordinary destiny.","C.S. Lewis","wisdom"],
+  ["Be yourself; everyone else is already taken.","Oscar Wilde","life"],
+  ["The man who moves a mountain begins by carrying away small stones.","Confucius","wisdom"],
+  ["You can't use up creativity. The more you use, the more you have.","Maya Angelou","wisdom"],
+  ["Don't be afraid to give up the good to go for the great.","John D. Rockefeller","success"],
+  ["There is no substitute for hard work.","Thomas Edison","success"],
+  ["Success is the sum of small efforts repeated day in and day out.","Robert Collier","success"],
+  ["I am not afraid of storms, for I am learning how to sail my ship.","Amy March","wisdom"],
+  ["The only way out is through.","Robert Frost","motivation"],
+  ["Your strength is measured not by how high you jump, but by how far you bounce.","Unknown","wisdom"],
+  ["Fall seven times, stand up eight.","Japanese Proverb","motivation"],
+  ["Success is not about luck, it's about discipline.","Unknown","success"],
+  ["We suffer more often in imagination than in reality.","Seneca","wisdom"],
+  ["Push yourself, because no one else is going to do it for you.","Unknown","motivation"],
+  ["All your dreams can come true if you have the courage to pursue them.","Walt Disney","motivation"],
+  ["Surround yourself with people who believe in your dreams.","Unknown","life"],
+  ["What stands in the way becomes the way.","Marcus Aurelius","wisdom"],
+  ["Your voice matters. Your story matters. You matter.","Unknown","motivation"],
+  ["Stop waiting for permission to live your life.","Unknown","life"],
+  ["The greatest glory in living lies not in never falling, but in rising every time we fall.","Nelson Mandela","wisdom"],
+  ["Your life does not get better by chance, it gets better by change.","Jim Rohn","life"],
+  ["Create with passion. Execute with precision. Measure with intention.","Unknown","success"],
+  ["Every expert was once a beginner.","Unknown","wisdom"],
+  ["Nothing can dim the light that shines from within.","Maya Angelou","motivation"],
+  ["You were born to be real, not to be perfect.","Unknown","life"],
+  ["Whatever your mind can conceive and believe, it can achieve.","Napoleon Hill","motivation"],
+  ["The only limit to our realization of tomorrow is our doubts of today.","Franklin D. Roosevelt","motivation"],
+  ["What you get by achieving your goals is not as important as what you become by achieving them.","Zig Ziglar","success"],
+  ["Risk more than others think is safe. Dream more than others think is practical.","Howard Schultz","success"],
+  ["Your life will either become a legacy of regret or a legacy of pride.","Unknown","life"],
+  ["I am the architect of my own destiny.","Unknown","success"],
+  ["Your breakthrough is on the other side of your breakdown.","Unknown","motivation"],
+  ["The distance between your dreams and reality is called action.","Unknown","motivation"],
+  ["Master this one moment. Make the most of it now.","Unknown","wisdom"],
+  ["When you have a dream, you've got to grab it and never let go.","Carol Burnett","motivation"],
+  ["I learned that courage was not the absence of fear, but the triumph over it.","Nelson Mandela","wisdom"],
+  ["The more you know yourself, the more clarity and peace you can bring to your decisions.","Unknown","wisdom"],
+  ["You don't need to be perfect to be worthy.","Unknown","motivation"],
+  ["Keep your dreams alive. Understand to achieve anything requires faith and belief in yourself.","Jesse Jackson","motivation"],
+  ["Only I can change my life. No one can do it for me.","Carol Burnett","success"],
+  ["Tell the story of the mountain you've climbed.","Unknown","life"],
+  ["If you do not fail, you are not even trying.","Unknown","success"],
+  ["Positive minds produce positive results.","Unknown","motivation"],
+  ["It's not about having time. It's about making time.","Unknown","success"],
+  ["You don't have to see the whole staircase, just take the first step.","Martin Luther King Jr.","motivation"],
+  ["Self-confidence is the first requisite to great undertakings.","Samuel Johnson","motivation"],
+  ["Winners focus on winning. Losers focus on winners.","Eric Thomas","success"],
+  ["You are not a mistake. You are not a problem to be solved.","Unknown","wisdom"],
+  ["Prove them wrong.","Unknown","motivation"],
+  ["Do the best you can with what you have.","Unknown","wisdom"],
+  ["Your time is valuable. Guard it well.","Unknown","life"],
+  ["The best way to predict the future is to create it.","Peter Drucker","success"],
+  ["You don't know how strong you are until being strong is the only choice you have.","Unknown","motivation"],
+  ["Life is like riding a bicycle. To keep your balance, you must keep moving.","Albert Einstein","life"],
+  ["What lies behind us and what lies before us are tiny matters compared to what lies within us.","Ralph Waldo Emerson","wisdom"],
+  ["The world breaks everyone, and afterward, many are strong at the broken places.","Ernest Hemingway","wisdom"],
+  ["Believe in your infinite potential.","Unknown","motivation"],
+  ["You have within you right now, everything you need to deal with whatever the world can throw at you.","Brian Tracy","motivation"],
+  ["Don't let yesterday take up too much of today.","Will Rogers","life"],
+  ["Create the life you love by doing the work you love.","Unknown","success"],
+  ["I am willing to put in the hard work.","Unknown","success"],
+  ["Life is not about finding yourself. Life is about creating yourself.","George Bernard Shaw","life"],
+  ["Your only limitation is yourself.","Unknown","motivation"],
+  ["In the middle of difficulty lies opportunity.","Albert Einstein","wisdom"],
+  ["Sometimes we're tested not to show our weaknesses, but to discover our strengths.","Unknown","wisdom"],
+  ["The path to success is to take massive, determined action.","Tony Robbins","success"],
+  ["There is no traffic on the extra mile.","Unknown","success"],
+  ["You are destined for greatness.","Unknown","motivation"],
+  ["Growth happens outside of your comfort zone.","Unknown","success"],
+  ["I am my own biggest competition.","Unknown","motivation"],
+  ["What you do today can improve all your tomorrows.","Ralph Marston","life"],
+  ["Change is painful but nothing is as painful as staying stuck.","Unknown","life"],
+  ["Today is a good day to learn something new.","Unknown","wisdom"],
+  ["The person who never made a mistake never tried anything new.","Albert Einstein","wisdom"],
+  ["You attract what you think about.","Unknown","motivation"],
+  ["Success is not a one-shot deal.","Unknown","success"],
+  ["Be the change you want to see in the world.","Mahatma Gandhi","life"],
+  ["Your past has prepared you. Your present defines you. Your future awaits you.","Unknown","life"],
+  ["Focus on the mission, not the competition.","Unknown","success"],
+  ["Fortune favors the bold.","Unknown","motivation"],
+  ["You can't be a control freak if you want to be free.","Unknown","wisdom"],
+  ["Do it today. It's not going to happen any sooner.","Unknown","success"],
+  ["Every morning brings new potential.","Unknown","motivation"],
+  ["You are capable of so much more than you think.","Unknown","motivation"],
+  ["Stop thinking you're not good enough.","Unknown","motivation"],
+  ["Your comeback will be stronger than your setback.","Unknown","motivation"],
+  ["Invest in yourself. It's the best investment you'll ever make.","Unknown","success"],
+  ["The struggle is part of the story.","Unknown","wisdom"],
+  ["You don't have to be perfect to be amazing.","Unknown","motivation"],
+  ["Resilience is your superpower.","Unknown","motivation"],
+  ["Whatever you focus on grows.","Unknown","wisdom"],
+  ["You are allowed to outgrow the version of you from yesterday.","Unknown","life"],
+  ["Never underestimate your power to change yourself.","H. Jackson Brown Jr.","motivation"],
+  ["Your next big breakthrough is already waiting for you.","Unknown","success"],
+  ["The world needs what you have to offer.","Unknown","motivation"],
+  ["Success starts with self-belief.","Unknown","success"],
+  ["Embrace the discomfort because that's where growth lives.","Unknown","wisdom"],
+  ["You are proof that dreams can come true.","Unknown","motivation"],
+  ["Stop waiting for perfect and start living now.","Unknown","life"],
+  ["Consistency is the key to success.","Unknown","success"],
+  ["Your value is not determined by your productivity.","Unknown","wisdom"],
+  ["Today, be a little braver than you were yesterday.","Unknown","motivation"],
+  ["You have the power to create change.","Unknown","success"],
+  ["The harder you work, the luckier you become.","Gary Player","success"],
+  ["You were born with infinite potential.","Unknown","motivation"],
+  ["Keep going. Your breakthrough is coming.","Unknown","motivation"],
+  ["It's not too late to become what you might have been.","George Eliot","life"],
+  ["You are stronger than you believe.","Unknown","motivation"],
+  ["Success is a journey, not a destination.","Unknown","success"],
+  ["Your story is your superpower.","Unknown","motivation"],
+  ["The only person holding you back is you.","Unknown","motivation"],
+  ["Make it happen.","Unknown","success"],
+  ["You've got this.","Unknown","motivation"],
+  ["Every morning is a fresh start.","Unknown","life"],
+  ["Believe in the possibility.","Unknown","motivation"],
+  ["Your potential is limitless.","Unknown","success"],
+  ["Take care of today and tomorrow will take care of itself.","Unknown","wisdom"],
+  ["You are allowed to be ambitious.","Unknown","success"],
+  ["Today is the day you take control of your life.","Unknown","motivation"],
+  ["You are worthy of your dreams.","Unknown","motivation"],
+  ["Start where you are. Use what you have. Do what you can.","Arthur Ashe","success"],
+  ["Your voice has power.","Unknown","motivation"],
+  ["Never doubt your ability to succeed.","Unknown","motivation"],
+];
+
+let state={
+  voiceOn:false,musicOn:false,current:null,lastIdx:-1,
+  favs:new Set(),custom:[],ctx:null,droneOsc:[],timer:null,
+  scale:[220,261.63,293.66,329.63,392,440,523.25]
+};
+
+async function init(){
+  loadState();
+  drawCard();
+  setupAudio();
+  bindUI();
+  updateFavButton();
+}
+
+function loadState(){
+  try{const f=localStorage.getItem("fav");if(f)state.favs=new Set(JSON.parse(f))}catch(e){}
+  try{const c=localStorage.getItem("custom");if(c)state.custom=JSON.parse(c)}catch(e){state.custom=[]}
+}
+
+function saveState(){
+  try{localStorage.setItem("fav",JSON.stringify([...state.favs]))}catch(e){}
+  try{localStorage.setItem("custom",JSON.stringify(state.custom))}catch(e){}
+}
+
+function getPool(){
+  const pool=[...QUOTES.map((q,i)=>({id:"q"+i,text:q[0],author:q[1],cat:q[2]}))];
+  pool.push(...state.custom.map((q,i)=>({id:"c"+i,text:q.text,author:q.author,cat:q.cat})));
+  return pool;
+}
+
+function drawCard(){
+  const pool=getPool();
+  if(!pool.length)return;
+  let idx;
+  do{idx=Math.floor(Math.random()*pool.length)}while(idx===state.lastIdx);
+  state.lastIdx=idx;
+  state.current=pool[idx];
+  
+  document.getElementById("quote-text").textContent=state.current.text;
+  document.getElementById("quote-author").textContent="— "+state.current.author;
+  document.getElementById("quote-date").textContent="Today";
+  document.getElementById("quote-source").textContent=state.current.cat.charAt(0).toUpperCase()+state.current.cat.slice(1);
+  updateFavButton();
+  if(state.voiceOn)setTimeout(()=>speak(),150);
+}
+
+function setupAudio(){
+  const AC=window.AudioContext||window.webkitAudioContext;
+  if(!AC){
+    document.getElementById("chip-voice").disabled=true;
+    document.getElementById("chip-music").disabled=true;
+  }
+}
+
+function speak(){
+  if(!("speechSynthesis"in window)||!state.current)return;
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(state.current.text+" by "+state.current.author);
+  u.rate=0.9;u.pitch=1;
+  speechSynthesis.speak(u);
+}
+
+function startMusic(){
+  if(!state.ctx){
+    const AC=window.AudioContext||window.webkitAudioContext;
+    if(!AC)return;
+    state.ctx=new AC();
+  }
+  if(state.ctx.state==="suspended")state.ctx.resume();
+  
+  const master=state.ctx.createGain();
+  master.gain.value=0.15;
+  master.connect(state.ctx.destination);
+  
+  const filt=state.ctx.createBiquadFilter();
+  filt.type="lowpass";filt.frequency.value=800;filt.Q.value=0.7;
+  filt.connect(master);
+  
+  [110,165].forEach(f=>{
+    const o=state.ctx.createOscillator();
+    const g=state.ctx.createGain();
+    o.type="sine";o.frequency.value=f;
+    o.detune.value=Math.random()*3;
+    g.gain.value=0.12;
+    o.connect(g);g.connect(filt);o.start();
+    state.droneOsc.push(o);
+  });
+  
+  const lfo=state.ctx.createOscillator();
+  const lfoG=state.ctx.createGain();
+  lfo.frequency.value=0.04;lfoG.gain.value=400;
+  lfo.connect(lfoG);lfoG.connect(filt.frequency);lfo.start();
+  state.droneOsc.push(lfo);
+  
+  const playBell=()=>{
+    if(!state.musicOn)return;
+    const f=state.scale[Math.floor(Math.random()*state.scale.length)];
+    const o=state.ctx.createOscillator();
+    const g=state.ctx.createGain();
+    o.type="triangle";o.frequency.value=f;
+    const now=state.ctx.currentTime;
+    g.gain.setValueAtTime(0,now);
+    g.gain.linearRampToValueAtTime(0.08,now+0.7);
+    g.gain.exponentialRampToValueAtTime(0.0001,now+4);
+    o.connect(g);g.connect(filt);
+    o.start(now);o.stop(now+4.2);
+    state.timer=setTimeout(playBell,2800+Math.random()*3000);
+  };
+  state.timer=setTimeout(playBell,1200);
+}
+
+function stopMusic(){
+  state.musicOn=false;
+  if(state.timer)clearTimeout(state.timer);
+  state.droneOsc.forEach(o=>{try{o.stop()}catch(e){}});
+  state.droneOsc=[];
+}
+
+function bindUI(){
+  document.getElementById("btn-next").onclick=drawCard;
+  document.getElementById("btn-favorite").onclick=()=>{
+    if(!state.current)return;
+    if(state.favs.has(state.current.id))state.favs.delete(state.current.id);
+    else state.favs.add(state.current.id);
+    saveState();updateFavButton();
+  };
+  document.getElementById("btn-saved").onclick=()=>openFav();
+  document.getElementById("btn-add").onclick=()=>openModal("add-modal");
+  
+  document.getElementById("chip-voice").onclick=()=>{
+    state.voiceOn=!state.voiceOn;
+    document.getElementById("chip-voice").classList.toggle("on",state.voiceOn);
+    if(state.voiceOn)speak();else speechSynthesis.cancel();
+  };
+  
+  document.getElementById("chip-music").onclick=()=>{
+    if(state.musicOn){stopMusic();document.getElementById("chip-music").classList.remove("on")}
+    else{state.musicOn=true;document.getElementById("chip-music").classList.add("on");startMusic()}
+  };
+  
+  document.querySelectorAll(".cat-btn").forEach(b=>b.onclick=function(){
+    document.querySelectorAll(".cat-btn").forEach(x=>x.classList.remove("active"));
+    this.classList.add("active");
+    document.querySelector("#add-modal").dataset.cat=this.dataset.cat;
+  });
+  
+  document.getElementById("btn-save").onclick=()=>{
+    const text=document.getElementById("new-quote").value.trim();
+    const author=document.getElementById("new-author").value.trim()||"You";
+    if(!text)return;
+    const cat=document.querySelector("#add-modal .cat-btn.active").dataset.cat;
+    state.custom.push({text,author,cat});
+    saveState();
+    document.getElementById("new-quote").value="";
+    document.getElementById("new-author").value="";
+    closeModal("add-modal");
+    drawCard();
+  };
+  
+  document.querySelectorAll(".modal-close").forEach(b=>b.onclick=e=>{
+    closeModal(e.target.closest(".modal").id);
+  });
+  
+  document.querySelectorAll(".modal").forEach(m=>{
+    m.addEventListener("click",e=>{if(e.target===m)closeModal(m.id)});
+  });
+}
+
+function updateFavButton(){
+  const b=document.getElementById("btn-favorite");
+  if(state.current&&state.favs.has(state.current.id))b.classList.add("on");
+  else b.classList.remove("on");
+}
+
+function openFav(){
+  const pool=getPool();
+  const kept=pool.filter(q=>state.favs.has(q.id));
+  const list=document.getElementById("fav-list");
+  if(!kept.length){
+    list.innerHTML='<div class="empty">No saved quotes yet. Tap ★ to save.</div>';
+  }else{
+    list.innerHTML=kept.map(q=>`
+      <div class="fav-item">
+        <div style="flex:1;cursor:pointer" onclick="selectQuote('${q.id}')">
+          <div class="text">"${q.text}"</div>
+          <div class="author">— ${q.author}</div>
+        </div>
+        <button class="remove" onclick="removeFav('${q.id}')">Remove</button>
+      </div>`).join("");
+  }
+  openModal("fav-modal");
+}
+
+function selectQuote(id){
+  const pool=getPool();
+  const q=pool.find(x=>x.id===id);
+  if(q){state.current=q;state.lastIdx=-1;
+    document.getElementById("quote-text").textContent=q.text;
+    document.getElementById("quote-author").textContent="— "+q.author;
+    document.getElementById("quote-source").textContent=q.cat.charAt(0).toUpperCase()+q.cat.slice(1);
+    updateFavButton();
+    closeModal("fav-modal");
+    if(state.voiceOn)speak();
+  }
+}
+
+function removeFav(id){
+  state.favs.delete(id);
+  saveState();
+  openFav();
+}
+
+function openModal(id){document.getElementById(id).classList.add("show")}
+function closeModal(id){document.getElementById(id).classList.remove("show")}
+
+init();
+</script>
+</body>
+</html>
